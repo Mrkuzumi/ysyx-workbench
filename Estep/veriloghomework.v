@@ -140,9 +140,230 @@ endmodule
 
 
 
+/*Mux2to1*/
+module top_module( 
+    input a, b, sel,
+    output out ); 
+    assign out =  (sel == 1'b1) ? b:a;
+endmodule
 
-/*this line is a test*/
 
-/*chg is sb*/
-/*111*/
-/*222*/
+/*Mux2to1v*/
+module top_module( 
+    input [99:0] a, b,
+    input sel,
+    output [99:0] out );
+    assign out = (sel == 1) ? b:a;
+
+endmodule
+
+/*Mux9to1v*/
+
+module top_module( 
+    input [15:0] a, b, c, d, e, f, g, h, i,
+    input [3:0] sel,
+    output [15:0] out );
+    always@(*)begin
+        case(sel)
+            3'b000:out = a;
+            3'b001:out = b;
+            3'b010:out = c;
+            3'b011:out = d;
+            3'b100:out = e;
+            3'b101:out = f;
+            3'b110:out = g;
+            3'b111:out = h;
+            4'b1000:out =i;
+            default:out = 16'b1111111111111111;
+                endcase
+                end
+endmodule
+
+
+/*Mux256to1*/
+module top_module( 
+    input [255:0] in,
+    input [7:0] sel,
+    output out );
+    assign out = in[sel];
+            
+endmodule
+
+
+/*Mux256to1v*/
+module top_module( 
+    input [1023:0] in,
+    input [7:0] sel,
+    output [3:0] out );
+    assign out = in[sel*4+:4];
+endmodule
+
+
+/*Hadd*/
+module top_module( 
+    input a, b,
+    output cout, sum );
+
+endmodule
+
+/*Fadd*/
+module top_module( 
+    input a, b, cin,
+    output cout, sum );
+    assign sum = cin^(a^b)  ;
+    assign cout = ((a^b)&cin)|(a&b);
+
+endmodule
+
+
+/*Adder3*/
+module fadd( 
+    input a, b, cin,
+    output cout, sum );
+    assign sum = cin^(a^b)  ;
+    assign cout = ((a^b)&cin)|(a&b);
+
+endmodule
+module top_module( 
+    input [2:0] a, b,
+    input cin,
+    output [2:0] cout,
+    output [2:0] sum );
+    fadd fa0(
+        .a(a[0]),
+        .b(b[0]),
+        .cin(cin),
+        .cout(cout[0]),
+        .sum(sum[0]));
+    fadd fa1(
+        .a(a[1]),
+        .b(b[1]),
+        .cin(cout[0]),
+        .cout(cout[1]),
+        .sum(sum[1]));
+    fadd fa2(
+        .a(a[2]),
+        .b(b[2]),
+        .cin(cout[1]),
+        .cout(cout[2]),
+        .sum(sum[2]));
+endmodule
+
+
+/*Adder*/
+module top_module (
+    input [3:0] x,
+    input [3:0] y, 
+    output [4:0] sum);
+assign sum = x+y;
+endmodule
+
+
+/*Exams/ece241 2014 q1c*/
+module top_module (
+    input signed [7:0] a,
+    input signed [7:0] b,
+    output signed [7:0] s,
+    output overflow
+); //
+ 
+     assign s = a+b;
+    assign overflow = (a[7]==b[7])&&(s[7] != a[7]);
+endmodule
+
+
+/*Adder100*/
+module top_module( 
+    input [99:0] a, b,
+    input cin,
+    output cout,
+    output [99:0] sum );
+    assign {cout, sum} = a+b+cin;
+endmodule
+
+/*DFF*/
+module top_module (
+    input clk,    // Clocks are used in sequential circuits
+    input d,
+    output reg q );//
+    always@(posedge clk)begin
+        q=d;
+    end
+    // Use a clocked always block
+    //   copy d to q at every positive edge of clk
+    //   Clocked always blocks should use non-blocking assignments
+
+endmodule
+
+/*DFF with reset value*//*同步复位*/
+module top_module (
+    input clk,
+    input reset,
+    input [7:0] d,
+    output reg [7:0] q
+);
+    always@(negedge  clk)begin
+        if(reset)begin
+            q <= 8'h34;
+        end else begin
+            q <= d;
+            
+            end
+    end
+
+endmodule
+
+
+/*DFFwith asynchronous reset*//*异步复位*/
+module top_module (
+    input clk,
+    input areset,   // active high asynchronous reset
+    input [7:0] d,
+    output [7:0] q
+);
+    always@(posedge clk,posedge areset)begin
+        if(areset)begin
+        q <= 0;
+        end else begin
+        q <= d;
+        end
+    end
+    
+
+endmodule
+
+
+/*DFF with byte enable*/
+module top_module (
+    input clk,
+    input resetn,
+    input [1:0] byteena,
+    input [15:0] d,
+    output reg [15:0] q
+);
+    always@(posedge clk)begin
+        if(!resetn)begin
+            q <= 16'b0;
+        end else begin
+            if(byteena[0])begin
+                q[7:0]<=d[7:0];
+            end
+            
+            if(byteena[1])begin
+                q[15:8]<=d[15:8];
+            end
+    end
+    end
+             
+   
+endmodule
+
+/*MUX and DFF*/
+module top_module (
+	input clk,
+	input L,
+	input r_in,
+	input q_in,
+	output reg Q);
+
+endmodule
