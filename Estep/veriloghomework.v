@@ -359,11 +359,71 @@ module top_module (
 endmodule
 
 /*MUX and DFF*/
+module register(input D,input clk,output Q);
+always@(posedge clk)begin
+Q<=D;
+end
+endmodule
 module top_module (
 	input clk,
 	input L,
 	input r_in,
 	input q_in,
 	output reg Q);
+    always@(posedge clk)begin
+	Q <= L ? r_in : q_in;
+    end
+endmodule
+
+
+/*MUX AND DFF*/
+
+module register(input D,input clk,output Q);
+always@(posedge clk)begin
+Q<=D;
+end
+endmodule
+module top_module (
+    input clk,
+    input w, R, E, L,
+    output Q
+);
+wire  x,y;
+assign x = E ? w:Q;
+assign y = L ? R:x;
+register u1(
+    .clk(clk),
+    .D(y),
+    .Q(Q)
+
+);
+endmodule
+
+
+
+
+/*create circuit from truth table*/
+module top_module (
+    input clk,
+    input j,
+    input k,
+    output Q); 
+    always@(negedge clk)begin
+        if(j==1&k==0)begin
+            Q<=j;
+        end
+        if(j==0&k==1)begin
+            Q<=k;
+        end
+        if(j==0&k==0)begin
+            Q<=Q;
+        end
+        IF(j==1&k==1)begin
+            Q<=~Q;
+        end
+
+    end
+
+    
 
 endmodule
