@@ -407,23 +407,36 @@ module top_module (
     input clk,
     input j,
     input k,
-    output Q); 
-    always@(negedge clk)begin
-        if(j==1&k==0)begin
-            Q<=j;
-        end
-        if(j==0&k==1)begin
-            Q<=k;
-        end
-        if(j==0&k==0)begin
-            Q<=Q;
-        end
-        IF(j==1&k==1)begin
-            Q<=~Q;
-        end
-
-    end
-
+    output reg Q); 
+    always @(posedge clk) begin
+    case ({j, k})  // 将 j 和 k 拼接成两位信号：00, 01, 10, 11
+        2'b00: Q <= Q;
+        2'b01: Q <= 1'b0;
+        2'b10: Q <= 1'b1;
+        2'b11: Q <= ~Q;
+    endcase
+end
     
+
+endmodule
+
+
+/*Detect an edge*/
+module top_module (
+    input clk,
+    input [7:0] in,
+    output reg [7:0] pedge  // 注意：这里必须是 reg
+);
+
+    reg [7:0] in_last;
+
+    always @(posedge clk) begin
+        // 关键：在这一拍里，in 是当下的，in_last 是上一拍存下来的。
+        // 用这两个算出的结果直接赋给 pedge 寄存器。
+        pedge <= in & ~in_last; 
+        
+        // 这一拍结束时，in_last 更新
+        in_last <= in;
+    end
 
 endmodule
