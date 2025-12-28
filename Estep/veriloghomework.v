@@ -440,3 +440,25 @@ module top_module (
     end
 
 endmodule
+
+
+
+
+
+/*dectect both edge*/
+module top_module (
+    input clk,
+    input [7:0] in,
+    output reg [7:0] anyedge
+);
+always@(posedge clk)begin
+
+           
+           anyedge <= in ^in_last;//唯一的区别就是把判断依据改为异或^
+  
+           
+         in_last <= in;	
+	
+	
+end
+endmodule
