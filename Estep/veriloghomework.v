@@ -520,3 +520,86 @@ endmodule
 
 /*至此我已经完成了82道题！*/
 /*latches and 人字拖章节结束*/
+
+/*decade counter again*/
+module top_module (
+    input clk,
+    input reset,
+    output reg [3:0] q);
+    always@(posedge clk)begin
+        if(reset)begin
+            q<=1'b1;
+        end else begin
+            q <= q +1'b1;
+            end
+        if(q == 4'b1010)begin
+                q<=1'b1;
+            end
+    end
+endmodule
+
+
+/*slow decade counter*/
+module top_module (
+    input clk,
+    input slowena,
+    input reset,
+    output  reg [3:0] q);
+    always@(posedge clk)begin
+        if (reset)begin
+            q<=1'b0;
+        end else begin
+            if(slowena)begin
+                q<= q+1'b1;
+                if(q==4'b1001)begin
+                q<=0;
+            end
+            end else begin
+                q<= q;
+            end
+        end
+    end
+endmodule
+
+
+/*counter 1000*/
+/*终于出现了！这道题让我设计的思路就是和我f3最终的大作业设计计时器是一样的思路：
+所有计数器共用一个时钟信号那他们怎样保证什么时候该累加什么时候不该呢？答案就是上一级（低位）
+该进位的时候就给一个使能信号给更高一级就可以了*/
+module top_module (
+    input clk,
+    input reset,
+    output OneHertz,
+    output [2:0] c_enable
+); //因为题目给的BCD计数器（就是我说的计数器）是0->9循环的，所以10*10*10就可以满足题目需求
+//下面注释为BCD计数器的代码
+/*module bcdcount (
+	input clk,
+	input reset,
+	input enable,
+	output reg [3:0] Q
+);*/
+    wire [3:0] q0, q1, q2;
+    assign c_enable[0] = 1'b1;
+    bcdcount bcd1(
+        .clk(clk),
+        .reset(reset),
+        .enable(c_enable[0]),
+        .Q(q0)
+    );
+    assign c_enable[1]= (q0==4'b1001);
+       bcdcount bcd2(
+        .clk(clk),
+        .reset(reset),
+        .enable(c_enable[1]),
+        .Q(q1)
+    );
+    assign c_enable[2]= (q0==4'b1001)&(q1==4'b1001);
+    bcdcount bcd3(
+        .clk(clk),
+        .reset(reset),
+        .enable(c_enable[2]),
+        .Q(q2)
+    );
+    assign OneHertz = (q0==4'b1001)&(q1==4'b1001)&(q2==4'b1001);
+endmodule
