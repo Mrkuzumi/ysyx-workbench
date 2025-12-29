@@ -462,3 +462,50 @@ always@(posedge clk)begin
 	
 end
 endmodule
+
+/*Edge capture register*/
+module top_module (
+    input clk,
+    input reset,
+    input [31:0] in,
+    output reg [31:0] out
+);
+    reg [31:0] in_last;
+    reg [31:0] tmp;
+    always@(posedge clk)begin
+        in_last <= in;
+        if(reset)begin
+        out <= 32'b0;
+        end else begin
+    tmp = (~in)&in_last;//本道题监测的是由1->0的变化
+            
+            out <= out | tmp;//若有某一位变化就用那某一位变化通过或门来覆盖掉out
+            
+           
+      end
+        
+        
+    end
+    
+
+endmodule
+
+
+/*Dual-edge triggered flip-flop*/
+module top_module (
+    input clk,
+    input d,
+    output  reg q
+);
+    reg tmp1;
+    always@(posedge clk )begin
+        tmp1 <= d;
+        if(~tmp1&d)begin
+            q <= 1'b1;
+        end else if (~d&tmp1)begin
+            
+        q<=1'b0;
+            
+        end
+    end
+endmodule
