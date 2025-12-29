@@ -498,14 +498,25 @@ module top_module (
     output  reg q
 );
     reg tmp1;
-    always@(posedge clk )begin
-        tmp1 <= d;
-        if(~tmp1&d)begin
-            q <= 1'b1;
-        end else if (~d&tmp1)begin
-            
-        q<=1'b0;
-            
+    reg tmp2;
+    always@(posedge clk )begin//上升沿监测，监测0-》1
+        tmp1 <= d;         
+    end
+    always@(negedge clk)begin//下降沿监测，监测1-》0
+        tmp2 <= d;     
+    end
+    always@(*)begin
+        if(clk)begin
+            q= tmp1;
+        end else begin
+            q = tmp2;
         end
     end
 endmodule
+//重新审视此题：为什么我的思维逻辑错了呢？没有读清楚题目，本题要制作一个D触发器，但是这个触发器是上下沿都要执行一次存储的触发器
+//与最普通最初级最常见的D触发器不同在于多了一个还对negadege响应的步骤
+/*而我一开始想要通过if(d&(~tmp1)) 和 if(~d&tmp2)来制作的是一个单纯
+用来捕获信号上升或下降变化的模块，根本就是和题目南辕北辙！！！*/
+
+/*至此我已经完成了82道题！*/
+/*latches and 人字拖章节结束*/
