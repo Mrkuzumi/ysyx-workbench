@@ -603,3 +603,151 @@ module top_module (
     );
     assign OneHertz = (q0==4'b1001)&(q1==4'b1001)&(q2==4'b1001);
 endmodule
+
+
+/*count clock*/
+/*创建一组适用于12小时制时钟（带有上午/下午指示器）的计数器。你的计数器由一个快速运行的clk时钟控制，每当时钟需要递增时（即每秒一次），ena会产生一个脉冲。
+
+复位（reset）会将时钟重置为12:00 AM。pm为0表示上午（AM），为1表示下午（PM）。hh、mm和ss分别是小时（01-12）、分钟（00-59）和秒（00-59）的两位BCD（二进制编码的十进制）数字。复位的优先级高于使能，即使在未使能的情况下也能发生。
+
+以下时序图展示了从11:59:59 AM到12:00:00 PM的翻转行为，以及同步复位和使能行为。*/
+
+module bcd9 (
+	input clk,
+	input reset,
+	input enable,
+	output reg [3:0] Q
+);
+always @(posedge clk) begin
+    if (reset) begin
+        Q <= 4'b0000 ;//reset if needed to be reset
+    end else if (enable) begin
+        if (Q >= 4'b1001) begin  
+            Q <= 4'b0000;//reset when arrive to 9
+        end else begin
+            Q <= Q + 1'b1;
+        end
+    end
+end
+//create a bcd first which can count 0->9
+endmodule
+module bcd5 (
+	input clk,
+	input reset,
+	input enable,
+	output reg [3:0] Q
+);
+always @(posedge clk) begin
+    if (reset) begin
+        Q <= 4'b0000 ;//reset if needed to be reset
+    end else if (enable) begin
+        if (Q >= 4'b0101) begin  
+            Q <= 4'b0000;//reset when arrive to 9
+        end else begin
+            Q <= Q + 1'b1;
+        end
+    end
+end
+//create a bcd first which can count 0->9and 0->5
+endmodule
+module top_module(
+    input clk,
+    input reset,
+    input ena,
+    output  reg pm,
+    output [7:0] hh,
+    output [7:0] mm,
+    output [7:0] ss); 
+    //pm0-上午，pm1-》下午
+    wire [3:0] q0, q1, q2,q3,q4,q5;
+    wire [5:0] en;
+            
+            assign ss[3:0] = q0;
+            assign ss[7:4] = q1;
+            assign mm[3:0] = q2;
+            assign mm[7:4] = q3;                     
+            assign en[0]= ena;
+            assign en[1] = (q0 == 4'b1001);//当个位为9给十位一个进位信号（使能）
+            assign en[2] = (q0==4'b1001)&(q1==4'b0101);//十位为5，个位为9
+            assign en[3] = (q2==4'b1001)&(q0==4'b1001)&(q1==4'b0101);//秒十位为5，个位为9 ，分的个位为9
+            assign en[4] = (q3==4'b0101)&(q2==4'b1001)&(q0==4'b1001)&(q1==4'b0101);//秒十位为5，个位为9 ，分的个位为9,十位为5
+            assign en[5] = (q4==4'b0010)&(q3==4'b0101)&(q2==4'b1001)&(q0==4'b1001)&(q1==4'b0101);//秒十位为5，个位为9 ，分的个位为9,十位为5，时的个位为9 
+
+
+
+    
+        
+
+            
+            bcd9 ssdegewei(//秒的个位
+                .clk(clk),
+                .reset(reset),
+                .enable(en[0]),
+                .Q(q0)
+            );
+             
+             bcd5 ssdeshiwei(//秒的十位
+                .clk(clk),
+                .reset(reset),
+                .enable(en[1]),
+                .Q(q1)
+            );
+            
+            //接下来要把十位复位，怎么复位呢
+           
+            bcd9 mmdegewei(//分的个位
+                .clk(clk),
+                .reset(reset),
+                .enable(en[2]),
+                .Q(q2)
+            );
+
+
+            
+            bcd5 mmdeshiwei(//分的十位
+                .clk(clk),
+                .reset(reset),
+                .enable(en[3]),
+                .Q(q3)
+            );
+
+
+                                
+            always @(posedge clk) begin
+            if(reset)begin
+                hh<=8'h12;
+                pm<=1'b0;
+            end else if(en[4])begin
+                if(hh==8'h12)begin//from 12:59:59->01:00:00
+                    hh<=8'h01; 
+                end else if(hh==8'h11)begin//11:59:59 ->12:00:00
+                    pm<=~pm;
+                    hh<=8'h12;
+                end else if(hh[3:0] == 4'h9)begin//from 09:59:59 ->10:00:00
+                    hh[7:4] <= hh[7:4] + 1'b1;
+                    hh[3:0] <= 4'h0;
+
+                
+                end else begin
+                    hh[3:0]<=hh[3:0] +1'b1;
+                end
+
+            end
+            
+
+            end
+            
+
+endmodule
+/*1. 为什么 hh 显示的是 c？
+在第一张图（Minute roll-over）中：
+
+Ref（参考）: hh 显示为 12。
+
+Yours（你的）: hh 显示为 c。
+
+原因： 在 Verilog 中，8'b00001100（即十进制的 12）在仿真器的十六进制视图下会显示为 0c。而题目要求的是 BCD 码。BCD 码要求每一位十进制数占用 4 个位。
+
+12 的 BCD 码应该是：0001 (1) 和 0010 (2)，拼起来是 8'h12。
+
+你的代码里写的是：hh <= 8'b00001100;（这是纯二进制的 12）。*/
